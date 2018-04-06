@@ -17,6 +17,16 @@ class ServiceProvider extends BaseServiceProvider
                 Debug::class,
             ]);
         }
+
+        /** @var \DebugBar\DebugBar $debugBar */
+        $debugBar = $this->app->make('debugbar');
+
+        $this->app->bind(StorageRepository::class, function () use ($debugBar) {
+            return new StorageRepository($debugBar->getStorage());
+        });
+
+        // Boots laravel debug bar
+        $debugBar->boot();
     }
 
     /**
