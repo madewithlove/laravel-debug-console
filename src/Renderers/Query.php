@@ -12,42 +12,33 @@ class Query extends AbstractRenderer
     public function render(array $data)
     {
         $queries = collect(array_get($data, 'queries.statements', []));
+        $message = sprintf(
+            '%s statements were executed in %s',
+            array_get($data, 'queries.nb_statements'),
+            array_get($data, 'queries.accumulated_duration_str')
+        );
 
-        // Retrieve grouped sql statements
-        $rows = $queries
-            ->map(function ($query, $index) {
-                return [
-                    $index,
-                    array_get($query, 'sql'),
-                    array_get($query, 'duration_str'),
-                ];
-            })
-            ->all();
+        $this->output->title('Queries');
+        $this->output->writeln($message);
 
         $table = new Table($this->output);
-
-        $this->output->writeln('Queries executed:');
         $table
             ->setHeaders([
-                'N.',
                 'SQL',
                 'Duration',
+                'Statement ID',
+                'connection',
             ])
-            ->setRows($rows)
-            ->render();
-
-        $this->output->writeln('Queries summary:');
-        $table
-            ->setHeaders([
-                'Total Number of Queries',
-                'Total Execution Time',
-            ])
-            ->setRows([
-                [
-                    array_get($data, 'queries.nb_statements'),
-                    array_get($data, 'queries.accumulated_duration_str')
-                ]
-            ])
+            ->setRows(
+                $queries->map(function ($query, $index) {
+                    return [
+                        array_get($query, 'sql'),
+                        array_get($query, 'duration_str'),
+                        array_get($query, 'stmt_id'),
+                        str_limit(array_get($query, 'connection'), 20),
+                    ];
+                })
+                    ->all())
             ->render();
     }
 }
