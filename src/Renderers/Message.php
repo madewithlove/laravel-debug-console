@@ -2,7 +2,7 @@
 
 namespace Madewithlove\LaravelDebugConsole\Renderers;
 
-class Messages extends AbstractRenderer
+class Message extends AbstractRenderer
 {
     /**
      * @param array $data

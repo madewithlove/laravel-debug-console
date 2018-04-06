@@ -2,7 +2,7 @@
 
 namespace Madewithlove\LaravelDebugConsole\Renderers;
 
-class Request extends AbstractRenderer
+class Route extends AbstractRenderer
 {
     /**
      * @param array $data
@@ -11,7 +11,7 @@ class Request extends AbstractRenderer
     {
         $this->output->title('Route');
 
-        $request = array_get($data, 'request', []);
+        $route = array_get($data, 'route', []);
 
         $this->output->table([], array_map(function ($value, $index) {
             if (is_array($value)) {
@@ -19,6 +19,6 @@ class Request extends AbstractRenderer
             }
 
             return [$index, str_limit($value, 200)];
-        }, array_values($request), array_keys($request)));
+        }, array_values($route), array_keys($route)));
     }
 }
