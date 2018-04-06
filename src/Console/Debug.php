@@ -3,8 +3,13 @@
 namespace Madewithlove\LaravelDebugConsole\Console;
 
 use Illuminate\Console\Command;
+use Madewithlove\LaravelDebugConsole\Renderers\Exception;
+use Madewithlove\LaravelDebugConsole\Renderers\General;
+use Madewithlove\LaravelDebugConsole\Renderers\Message;
 use Madewithlove\LaravelDebugConsole\Renderers\Query;
 use Madewithlove\LaravelDebugConsole\Renderers\Request;
+use Madewithlove\LaravelDebugConsole\Renderers\Route;
+use Madewithlove\LaravelDebugConsole\Renderers\Timeline;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
 
 class Debug extends Command
@@ -14,7 +19,7 @@ class Debug extends Command
      *
      * @var string
      */
-    protected $signature = 'app:debug {section}';
+    protected $signature = 'app:debug {section?}';
 
     /**
      * The console command description.
@@ -52,8 +57,28 @@ class Debug extends Command
             // Make sure the screen is clean
             $this->refresh();
 
-            (new Request($this->output))->render($data);
-            (new Query($this->output))->render($data);
+            (new General($this->input, $this->output))->render($data);
+
+            switch ($section) {
+                case 'messages':
+                    (new Message($this->input, $this->output))->render($data);
+                    break;
+                case 'timeline':
+                    (new Timeline($this->input, $this->output))->render($data);
+                    break;
+                case 'exceptions':
+                    (new Exception($this->input, $this->output))->render($data);
+                    break;
+                case 'route':
+                    (new Route($this->input, $this->output))->render($data);
+                    break;
+                case 'queries':
+                    (new Query($this->input, $this->output))->render($data);
+                    break;
+                case 'request':
+                    (new Request($this->input, $this->output))->render($data);
+                    break;
+            }
         }
     }
 
