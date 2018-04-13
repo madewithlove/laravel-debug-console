@@ -11,6 +11,7 @@ use Madewithlove\LaravelDebugConsole\Renderers\Request;
 use Madewithlove\LaravelDebugConsole\Renderers\Route;
 use Madewithlove\LaravelDebugConsole\Renderers\Timeline;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
+use React\EventLoop\Factory;
 
 class Debug extends Command
 {
@@ -39,6 +40,11 @@ class Debug extends Command
     private $currentRequest = null;
 
     /**
+     * @var \React\EventLoop\LoopInterface
+     */
+    private $loop;
+
+    /**
      * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
      */
     public function __construct(StorageRepository $repository)
@@ -46,6 +52,7 @@ class Debug extends Command
         parent::__construct();
 
         $this->repository = $repository;
+        $this->loop = Factory::create();
     }
 
     /**
@@ -54,19 +61,15 @@ class Debug extends Command
     public function handle()
     {
         $section = $this->argument('section');
-
-        // Watch files every second
-        while (true) {
+        $this->loop->addPeriodicTimer(1, function () use ($section) {
             $data = $this->repository->latest();
 
             // Checks if its a new request
-            if ($this->isNewRequest(array_get($data, '__meta.id'))) {
-                $this->refresh();
-            } else {
-                $this->wait();
-
-                continue;
+            if (!$this->isNewRequest($data)) {
+                return;
             }
+
+            $this->refresh();
 
             (new General($this->input, $this->output))->render($data);
 
@@ -90,28 +93,25 @@ class Debug extends Command
                     (new Request($this->input, $this->output))->render($data);
                     break;
             }
-        }
-    }
+        });
 
-    private function wait()
-    {
-        sleep(1);
+        $this->loop->run();
     }
 
     private function refresh()
     {
-        $this->wait();
         system('clear');
     }
 
     /**
-     * @param $id
+     * @param array $data
      *
      * @return bool
      */
-    private function isNewRequest($id)
+    private function isNewRequest(array $data)
     {
-        if (empty($this->currentRequest) || $this->currentRequest !== $id) {
+        $id = array_get($data, '__meta.id');
+        if ($id && empty($this->currentRequest) || $this->currentRequest !== $id) {
             $this->currentRequest = $id;
 
             return true;
