@@ -9,7 +9,7 @@ class Message extends AbstractRenderer
      */
     public function render(array $data)
     {
-        $this->output->title('Messages');
+        $this->title('Messages');
 
         array_map(function ($message) {
             $label = array_get($message, 'label');
@@ -17,14 +17,14 @@ class Message extends AbstractRenderer
 
             switch ($label) {
                 case 'error':
-                    $this->output->error($message);
+                    $this->error($message);
                     break;
                 case 'warning':
-                    $this->output->warning($message);
+                    $this->warning($message);
                     break;
                 case 'info':
                 default;
-                    $this->output->block($message, $label, 'fg=black;bg=blue', ' ', true);
+                    $this->block($message, $label, 'fg=black;bg=blue', ' ', true);
             }
 
         }, array_get($data, 'messages.messages', []));

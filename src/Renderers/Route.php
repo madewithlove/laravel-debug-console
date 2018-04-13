@@ -9,11 +9,11 @@ class Route extends AbstractRenderer
      */
     public function render(array $data)
     {
-        $this->output->title('Route');
+        $this->title('Route');
 
         $route = array_get($data, 'route', []);
 
-        $this->output->table([], array_map(function ($value, $index) {
+        $this->table([], array_map(function ($value, $index) {
             if (is_array($value)) {
                 $value = implode(', ', $value);
             }

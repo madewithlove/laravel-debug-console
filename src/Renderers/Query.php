@@ -2,8 +2,6 @@
 
 namespace Madewithlove\LaravelDebugConsole\Renderers;
 
-use Symfony\Component\Console\Helper\Table;
-
 class Query extends AbstractRenderer
 {
     /**
@@ -18,27 +16,22 @@ class Query extends AbstractRenderer
             array_get($data, 'queries.accumulated_duration_str')
         );
 
-        $this->output->title('Queries');
-        $this->output->writeln($message);
+        $this->title('Queries');
+        $this->writeln($message);
+        $this->newLine();
 
-        $table = new Table($this->output);
-        $table
-            ->setHeaders([
-                'SQL',
-                'Duration',
-                'Statement ID',
-                'connection',
-            ])
-            ->setRows(
-                $queries->map(function ($query, $index) {
-                    return [
-                        array_get($query, 'sql'),
-                        array_get($query, 'duration_str'),
-                        array_get($query, 'stmt_id'),
-                        str_limit(array_get($query, 'connection'), 20),
-                    ];
-                })
-                    ->all())
-            ->render();
+        $this->table([
+            'SQL',
+            'Duration',
+            'Statement ID',
+            'connection',
+        ], $queries->map(function ($query, $index) {
+            return [
+                array_get($query, 'sql'),
+                array_get($query, 'duration_str'),
+                array_get($query, 'stmt_id'),
+                str_limit(array_get($query, 'connection'), 20),
+            ];
+        })->all());
     }
 }

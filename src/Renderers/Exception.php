@@ -9,13 +9,13 @@ class Exception extends AbstractRenderer
      */
     public function render(array $data)
     {
-        $this->output->title('Exceptions');
+        $this->title('Exceptions');
 
         foreach (array_get($data, 'exceptions.exceptions', []) as $exception) {
-            $this->output->block(array_get($exception, 'message'), array_get($exception, 'type'), 'fg=white;bg=red', ' ', true);
-            $this->output->text(array_get($exception, 'file') . '#' . array_get($exception, 'line'));
-            $this->output->newLine();
-            $this->output->block(array_get($exception, 'surrounding_lines'), null, 'fg=yellow', ' ! ');
+            $this->block(array_get($exception, 'message'), array_get($exception, 'type'), 'fg=white;bg=red', ' ', true);
+            $this->text(array_get($exception, 'file') . '#' . array_get($exception, 'line'));
+            $this->newLine();
+            $this->block(array_get($exception, 'surrounding_lines'), null, 'fg=yellow', ' ! ');
         }
     }
 }
