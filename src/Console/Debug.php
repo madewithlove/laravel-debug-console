@@ -34,6 +34,11 @@ class Debug extends Command
     private $repository;
 
     /**
+     * @var null|string
+     */
+    private $currentRequest = null;
+
+    /**
      * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
      */
     public function __construct(StorageRepository $repository)
@@ -54,8 +59,14 @@ class Debug extends Command
         while (true) {
             $data = $this->repository->latest();
 
-            // Make sure the screen is clean
-            $this->refresh();
+            // Checks if its a new request
+            if ($this->isNewRequest(array_get($data, '__meta.id'))) {
+                $this->refresh();
+            } else {
+                $this->wait();
+
+                continue;
+            }
 
             (new General($this->input, $this->output))->render($data);
 
@@ -82,14 +93,30 @@ class Debug extends Command
         }
     }
 
-    public function wait()
+    private function wait()
     {
         sleep(1);
     }
 
-    public function refresh()
+    private function refresh()
     {
         $this->wait();
         system('clear');
+    }
+
+    /**
+     * @param $id
+     *
+     * @return bool
+     */
+    private function isNewRequest($id)
+    {
+        if (empty($this->currentRequest) || $this->currentRequest !== $id) {
+            $this->currentRequest = $id;
+
+            return true;
+        }
+
+        return false;
     }
 }

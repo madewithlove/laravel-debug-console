@@ -10,7 +10,8 @@
   ],
   "require": {
     "illuminate/console": ">5.3",
-    "barryvdh/laravel-debugbar": ">2.4"
+    "barryvdh/laravel-debugbar": ">2.4",
+    "clue/stdio-react": "^2.1"
   },
   "autoload": {
     "psr-4": {
