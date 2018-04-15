@@ -17,7 +17,9 @@ has a repository to your composer.json file.
 ],
 "require-dev": {
     "madewithlove/laravel-debug-console": "*"
-}
+},
+"minimum-stability": "dev",
+"prefer-stable": true
 ```
 
 and then run `composer update`.
