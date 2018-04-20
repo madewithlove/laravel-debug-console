@@ -11,7 +11,8 @@ use Madewithlove\LaravelDebugConsole\Renderers\Request;
 use Madewithlove\LaravelDebugConsole\Renderers\Route;
 use Madewithlove\LaravelDebugConsole\Renderers\Timeline;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
-use React\EventLoop\Factory;
+use Madewithlove\LaravelDebugConsole\Terminal;
+use React\EventLoop\LoopInterface;
 
 class Debug extends Command
 {
@@ -30,14 +31,24 @@ class Debug extends Command
     protected $description = 'Displays laravel debug bar stored information.';
 
     /**
-     * @var \Madewithlove\LaravelDebugConsole\StorageRepository
-     */
-    private $repository;
-
-    /**
      * @var null|string
      */
     private $currentRequest = null;
+
+    /**
+     * @var integer
+     */
+    private $currentSection = 0;
+
+    /**
+     * @var string
+     */
+    private $displayedSection;
+
+    /**
+     * @var \Madewithlove\LaravelDebugConsole\StorageRepository
+     */
+    private $repository;
 
     /**
      * @var \React\EventLoop\LoopInterface
@@ -45,14 +56,22 @@ class Debug extends Command
     private $loop;
 
     /**
-     * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
+     * @var \Madewithlove\LaravelDebugConsole\Terminal
      */
-    public function __construct(StorageRepository $repository)
+    private $terminal;
+
+    /**
+     * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
+     * @param \React\EventLoop\LoopInterface $loop
+     * @param \Madewithlove\LaravelDebugConsole\Terminal $terminal
+     */
+    public function __construct(StorageRepository $repository, LoopInterface $loop, Terminal $terminal)
     {
         parent::__construct();
 
         $this->repository = $repository;
-        $this->loop = Factory::create();
+        $this->loop = $loop;
+        $this->terminal = $terminal;
     }
 
     /**
@@ -61,15 +80,38 @@ class Debug extends Command
     public function handle()
     {
         $section = $this->argument('section');
-        $this->loop->addPeriodicTimer(1, function () use ($section) {
+
+        $sections = [
+            'messages',
+            'timeline',
+            'exceptions',
+            'route',
+            'queries',
+            'request',
+        ];
+
+        $this->terminal->registerKeyEvent(Terminal::KEY_LEFT, function () {
+            if ($this->currentSection > 0) {
+                --$this->currentSection;
+            }
+        });
+
+        $this->terminal->registerKeyEvent(Terminal::KEY_RIGHT, function () use ($sections) {
+            if ($this->currentSection < count($sections) - 1) {
+                ++$this->currentSection;
+            }
+        });
+
+        $this->loop->addPeriodicTimer(1, function () use ($sections) {
             $data = $this->repository->latest();
+            $section = array_get($sections, $this->currentSection);
 
             // Checks if its a new request
-            if (!$this->isNewRequest($data)) {
+            if (!$this->isNewSection($section) && !$this->isNewRequest($data)) {
                 return;
             }
 
-            $this->refresh();
+            $this->terminal->refresh();
 
             (new General($this->input, $this->output))->render($data);
 
@@ -93,14 +135,21 @@ class Debug extends Command
                     (new Request($this->input, $this->output))->render($data);
                     break;
             }
+
+            $this->displayedSection = $section;
         });
 
         $this->loop->run();
     }
 
-    private function refresh()
+    /**
+     * @param string $section
+     *
+     * @return bool
+     */
+    private function isNewSection($section)
     {
-        system('clear');
+        return $section !== $this->displayedSection;
     }
 
     /**
