@@ -3,15 +3,9 @@
 namespace Madewithlove\LaravelDebugConsole\Console;
 
 use Illuminate\Console\Command;
-use Madewithlove\LaravelDebugConsole\Renderers\Exception;
-use Madewithlove\LaravelDebugConsole\Renderers\General;
-use Madewithlove\LaravelDebugConsole\Renderers\Message;
-use Madewithlove\LaravelDebugConsole\Renderers\Query;
-use Madewithlove\LaravelDebugConsole\Renderers\Request;
-use Madewithlove\LaravelDebugConsole\Renderers\Route;
-use Madewithlove\LaravelDebugConsole\Renderers\Timeline;
-use Madewithlove\LaravelDebugConsole\StorageRepository;
-use React\EventLoop\Factory;
+use Madewithlove\LaravelDebugConsole\Screen;
+use Madewithlove\LaravelDebugConsole\Terminal;
+use React\EventLoop\LoopInterface;
 
 class Debug extends Command
 {
@@ -20,7 +14,7 @@ class Debug extends Command
      *
      * @var string
      */
-    protected $signature = 'app:debug {section?}';
+    protected $signature = 'app:debug {screen?}';
 
     /**
      * The console command description.
@@ -30,29 +24,39 @@ class Debug extends Command
     protected $description = 'Displays laravel debug bar stored information.';
 
     /**
-     * @var \Madewithlove\LaravelDebugConsole\StorageRepository
-     */
-    private $repository;
-
-    /**
-     * @var null|string
-     */
-    private $currentRequest = null;
-
-    /**
      * @var \React\EventLoop\LoopInterface
      */
     private $loop;
 
     /**
-     * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
+     * @var \Madewithlove\LaravelDebugConsole\Terminal
      */
-    public function __construct(StorageRepository $repository)
+    private $terminal;
+
+    /**
+     * @var \Madewithlove\LaravelDebugConsole\Screen
+     */
+    private $screen;
+
+    /**
+     * @param \React\EventLoop\LoopInterface $loop
+     * @param \Madewithlove\LaravelDebugConsole\Terminal $terminal
+     * @param \Madewithlove\LaravelDebugConsole\Screen $screen
+     */
+    public function __construct(
+        LoopInterface $loop,
+        Terminal $terminal,
+        Screen $screen
+    )
     {
         parent::__construct();
 
-        $this->repository = $repository;
-        $this->loop = Factory::create();
+        $this->loop = $loop;
+        $this->terminal = $terminal;
+        $this->screen = $screen;
+
+        // Register events
+        $this->registerEvents();
     }
 
     /**
@@ -60,63 +64,24 @@ class Debug extends Command
      */
     public function handle()
     {
-        $section = $this->argument('section');
-        $this->loop->addPeriodicTimer(1, function () use ($section) {
-            $data = $this->repository->latest();
+        $screen = $this->argument('screen');
 
-            // Checks if its a new request
-            if (!$this->isNewRequest($data)) {
-                return;
-            }
-
-            $this->refresh();
-
-            (new General($this->input, $this->output))->render($data);
-
-            switch ($section) {
-                case 'messages':
-                    (new Message($this->input, $this->output))->render($data);
-                    break;
-                case 'timeline':
-                    (new Timeline($this->input, $this->output))->render($data);
-                    break;
-                case 'exceptions':
-                    (new Exception($this->input, $this->output))->render($data);
-                    break;
-                case 'route':
-                    (new Route($this->input, $this->output))->render($data);
-                    break;
-                case 'queries':
-                    (new Query($this->input, $this->output))->render($data);
-                    break;
-                case 'request':
-                    (new Request($this->input, $this->output))->render($data);
-                    break;
-            }
+        $this->loop->addPeriodicTimer(1, function () {
+            $this->terminal->refresh();
+            $this->screen->display();
         });
 
         $this->loop->run();
     }
 
-    private function refresh()
+    private function registerEvents()
     {
-        system('clear');
-    }
+        $this->terminal->registerKeyEvent(Terminal::KEY_LEFT, function () {
+            $this->screen->next();
+        });
 
-    /**
-     * @param array $data
-     *
-     * @return bool
-     */
-    private function isNewRequest(array $data)
-    {
-        $id = array_get($data, '__meta.id');
-        if ($id && empty($this->currentRequest) || $this->currentRequest !== $id) {
-            $this->currentRequest = $id;
-
-            return true;
-        }
-
-        return false;
+        $this->terminal->registerKeyEvent(Terminal::KEY_RIGHT, function () {
+            $this->screen->previous();
+        });
     }
 }
