@@ -3,6 +3,7 @@
 namespace Madewithlove\LaravelDebugConsole\Console;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Madewithlove\LaravelDebugConsole\Renderers\Exception;
 use Madewithlove\LaravelDebugConsole\Renderers\General;
 use Madewithlove\LaravelDebugConsole\Renderers\Message;
@@ -62,7 +63,14 @@ class Debug extends Command
     {
         $section = $this->argument('section');
         $this->loop->addPeriodicTimer(1, function () use ($section) {
-            $data = $this->repository->latest();
+            try {
+                $data = $this->repository->latest();
+            } catch (FileNotFoundException $e) {
+                $this->refresh();
+                $this->error('No laravel debugbar storage files found.');
+
+                return;
+            }
 
             // Checks if its a new request
             if (!$this->isNewRequest($data)) {
