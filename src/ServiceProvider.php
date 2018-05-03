@@ -2,8 +2,10 @@
 
 namespace Madewithlove\LaravelDebugConsole;
 
+use Clue\React\Stdio\Stdio;
 use Madewithlove\LaravelDebugConsole\Console\Debug;
-use \Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use React\EventLoop\Factory;
 
 class ServiceProvider extends BaseServiceProvider
 {
@@ -21,8 +23,12 @@ class ServiceProvider extends BaseServiceProvider
         /** @var \DebugBar\DebugBar $debugBar */
         $debugBar = $this->app->make('debugbar');
 
-        $this->app->bind(StorageRepository::class, function () use ($debugBar) {
-            return new StorageRepository($debugBar->getStorage());
+        $this->app->bind(Debug::class, function () use ($debugBar) {
+            $storage = new StorageRepository($debugBar->getStorage());
+            $loop = Factory::create();
+            $stdio = new Stdio($loop);
+
+            return new Debug($storage, $loop, $stdio);
         });
 
         // Boots laravel debug bar
