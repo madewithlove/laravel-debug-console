@@ -27,10 +27,10 @@ class Query extends AbstractRenderer
             'connection',
         ], $queries->map(function ($query, $index) {
             return [
-                array_get($query, 'sql'),
+                wordwrap(array_get($query, 'sql'), self::TEXT_MAX_WITH),
                 array_get($query, 'duration_str'),
-                array_get($query, 'stmt_id'),
-                str_limit(array_get($query, 'connection'), 20),
+                basename(array_get($query, 'stmt_id')),
+                basename(array_get($query, 'connection')),
             ];
         })->all());
     }

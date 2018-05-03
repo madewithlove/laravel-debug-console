@@ -5,6 +5,7 @@ namespace Madewithlove\LaravelDebugConsole\Console;
 use Clue\React\Stdio\Stdio;
 use Illuminate\Console\Command;
 use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
 use React\EventLoop\LoopInterface;
 
@@ -83,7 +84,14 @@ class Debug extends Command
         $this->registerReadLineEvent();
 
         $this->loop->addPeriodicTimer(1, function () {
-            $data = $this->repository->latest();
+            try {
+                $data = $this->repository->latest();
+            } catch (FileNotFoundException $e) {
+                $this->clear();
+                $this->error('No laravel debugbar storage files found.');
+
+                return;
+            }
 
             // Checks if its a new request
             if (!$this->isNewData($data) && !$this->isNewSection()) {
