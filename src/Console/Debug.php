@@ -75,7 +75,7 @@ class Debug extends Command
                 return;
             }
 
-            $this->refresh();
+            $this->clear();
             $this->renderScreen($data);
         });
 
@@ -110,8 +110,8 @@ class Debug extends Command
         return false;
     }
 
-    private function refresh()
+    private function clear()
     {
-        system('clear');
+        passthru("echo '\033\143'");
     }
 }
