@@ -3,13 +3,7 @@
 namespace Madewithlove\LaravelDebugConsole\Console;
 
 use Illuminate\Console\Command;
-use Madewithlove\LaravelDebugConsole\Renderers\Exception;
-use Madewithlove\LaravelDebugConsole\Renderers\General;
-use Madewithlove\LaravelDebugConsole\Renderers\Message;
-use Madewithlove\LaravelDebugConsole\Renderers\Query;
-use Madewithlove\LaravelDebugConsole\Renderers\Request;
-use Madewithlove\LaravelDebugConsole\Renderers\Route;
-use Madewithlove\LaravelDebugConsole\Renderers\Timeline;
+use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
 use React\EventLoop\Factory;
 
@@ -45,6 +39,16 @@ class Debug extends Command
     private $loop;
 
     /**
+     * @var string
+     */
+    private $section;
+
+    /**
+     * @var array
+     */
+    private $sections;
+
+    /**
      * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
      */
     public function __construct(StorageRepository $repository)
@@ -60,8 +64,10 @@ class Debug extends Command
      */
     public function handle()
     {
-        $section = $this->argument('section');
-        $this->loop->addPeriodicTimer(1, function () use ($section) {
+        $this->section = $this->argument('section');
+        $this->sections = RenderersFactory::create($this->input, $this->output);
+
+        $this->loop->addPeriodicTimer(1, function () {
             $data = $this->repository->latest();
 
             // Checks if its a new request
@@ -70,37 +76,21 @@ class Debug extends Command
             }
 
             $this->refresh();
-
-            (new General($this->input, $this->output))->render($data);
-
-            switch ($section) {
-                case 'messages':
-                    (new Message($this->input, $this->output))->render($data);
-                    break;
-                case 'timeline':
-                    (new Timeline($this->input, $this->output))->render($data);
-                    break;
-                case 'exceptions':
-                    (new Exception($this->input, $this->output))->render($data);
-                    break;
-                case 'route':
-                    (new Route($this->input, $this->output))->render($data);
-                    break;
-                case 'queries':
-                    (new Query($this->input, $this->output))->render($data);
-                    break;
-                case 'request':
-                    (new Request($this->input, $this->output))->render($data);
-                    break;
-            }
+            $this->renderScreen($data);
         });
 
         $this->loop->run();
     }
 
-    private function refresh()
+    /**
+     * @param array $data
+     */
+    public function renderScreen(array $data)
     {
-        system('clear');
+        array_get($this->sections, 'general')->render($data);
+        if (array_has($this->sections, $this->section)) {
+            array_get($this->sections, $this->section)->render($data);
+        }
     }
 
     /**
@@ -118,5 +108,10 @@ class Debug extends Command
         }
 
         return false;
+    }
+
+    private function refresh()
+    {
+        system('clear');
     }
 }
