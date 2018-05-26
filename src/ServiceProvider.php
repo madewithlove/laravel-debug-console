@@ -2,8 +2,9 @@
 
 namespace Madewithlove\LaravelDebugConsole;
 
+use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Madewithlove\LaravelDebugConsole\Console\Debug;
-use \Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Barryvdh\Debugbar\ServiceProvider as DebugbarServiceProvider;
 
 class ServiceProvider extends BaseServiceProvider
 {
@@ -34,6 +35,6 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
-        $this->app->register(\Barryvdh\Debugbar\ServiceProvider::class);
+        $this->app->register(DebugbarServiceProvider::class);
     }
 }
