@@ -1,29 +1,23 @@
 # Laravel Debug Console
 
-Lets you keep an eye on your laravel application without intefering with your application response.
-Perfect if you are working with apis.
+Use as an alternative to view collected information from [Laravel Debugbar](https://github.com/barryvdh/laravel-debugbar) package.
+Usefull if you are building apis or running console commands.
 
-## Installation instructions
+## Installation
 
-This package is still in development and not on packagist. To test it you can install it by adding it
-has a repository to your composer.json file.
+You can install the latest version via  [composer](https://getcomposer.org/):
 
-```json
-"repositories": [
-    {
-        "type": "path",
-        "url": "../laravel-debug-console-package"
-    }
-],
-"require-dev": {
-    "madewithlove/laravel-debug-console": "*"
-},
-"minimum-stability": "dev",
-"prefer-stable": true
+```bash
+composer require --dev madewithlove/laravel-debug-console
 ```
-
-and then run `composer update`.
 
 ## Usage
 
-Open your console and run `php artisan app:debug` it will update automatically on the next request.
+Open your console and run `php artisan app:debug {screen}` you can choose from the following options (same there would be available by default on laravel debug bar):
+
+- messages
+- timeline
+- exceptions
+- route
+- queries
+- request
