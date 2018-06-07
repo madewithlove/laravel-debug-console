@@ -3,8 +3,8 @@
 namespace Madewithlove\LaravelDebugConsole\Console;
 
 use Illuminate\Console\Command;
-use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
 use React\EventLoop\Factory;
 
@@ -30,9 +30,9 @@ class Debug extends Command
     private $repository;
 
     /**
-     * @var null|string
+     * @var string|null
      */
-    private $currentRequest = null;
+    private $currentRequest;
 
     /**
      * @var \React\EventLoop\LoopInterface

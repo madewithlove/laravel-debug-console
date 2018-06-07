@@ -22,7 +22,7 @@ class StorageRepository
     }
 
     /**
-     * Returns an array with the latest stored laravel debug bar data
+     * Returns an array with the latest stored laravel debug bar data.
      *
      * @return array
      */

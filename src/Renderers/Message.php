@@ -23,10 +23,9 @@ class Message extends AbstractRenderer
                     $this->warning($message);
                     break;
                 case 'info':
-                default;
+                default:
                     $this->block($message, $label, 'fg=black;bg=blue', ' ', true);
             }
-
         }, array_get($data, 'messages.messages', []));
     }
 }

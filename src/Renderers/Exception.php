@@ -13,7 +13,7 @@ class Exception extends AbstractRenderer
 
         foreach (array_get($data, 'exceptions.exceptions', []) as $exception) {
             $this->block(array_get($exception, 'message'), array_get($exception, 'type'), 'fg=white;bg=red', ' ', true);
-            $this->text(array_get($exception, 'file') . '#' . array_get($exception, 'line'));
+            $this->text(array_get($exception, 'file').'#'.array_get($exception, 'line'));
             $this->newLine();
             $this->block(array_get($exception, 'surrounding_lines'), null, 'fg=yellow', ' ! ');
         }
