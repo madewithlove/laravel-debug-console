@@ -2,9 +2,9 @@
 
 namespace Madewithlove\LaravelDebugConsole;
 
+use Barryvdh\Debugbar\ServiceProvider as DebugbarServiceProvider;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Madewithlove\LaravelDebugConsole\Console\Debug;
-use Barryvdh\Debugbar\ServiceProvider as DebugbarServiceProvider;
 
 class ServiceProvider extends BaseServiceProvider
 {
