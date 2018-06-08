@@ -1,17 +1,19 @@
 {
   "name": "madewithlove/laravel-debug-console",
+  "description": "Works as a console viewer for laravel debugbar.",
+  "keywords": ["laravel", "debugbar", "debug", "console"],
   "license": "MIT",
-  "description": "Works as a console view for laravel debug bar.",
   "authors": [
     {
-      "name": "Xavier Barbosa",
-      "email": "xavier@madewithlove.be"
+      "name": "madewithlove",
+      "email": "heroes@madewithlove.be"
     }
   ],
   "require": {
-    "illuminate/console": ">5.3",
-    "barryvdh/laravel-debugbar": ">2.4",
-    "clue/stdio-react": "^2.1"
+    "php": ">=5.5.9",
+    "illuminate/console": "5.1.*|5.2.*|5.3.*|5.4.*|5.5.*|5.6.*",
+    "barryvdh/laravel-debugbar": "~2.4|~3.1",
+    "clue/stdio-react": "~2.1"
   },
   "autoload": {
     "psr-4": {
