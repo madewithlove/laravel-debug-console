@@ -13,6 +13,11 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function boot()
     {
+        // Obey the same rules of laravel debugbar so we do not enable profiling where is not expected too.
+        if (!$this->isEnabled()) {
+            return;
+        }
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Debug::class,
@@ -36,5 +41,19 @@ class ServiceProvider extends BaseServiceProvider
     public function register()
     {
         $this->app->register(DebugbarServiceProvider::class);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isEnabled()
+    {
+        $enabled = $this->app['config']->get('debugbar.enabled');
+
+        if (is_null($enabled)) {
+            $enabled = $this->app['config']->get('app.debug');
+        }
+
+        return (bool) $enabled;
     }
 }
