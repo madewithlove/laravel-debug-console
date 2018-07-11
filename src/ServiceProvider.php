@@ -2,9 +2,10 @@
 
 namespace Madewithlove\LaravelDebugConsole;
 
+use Barryvdh\Debugbar\ServiceProvider as DebugbarServiceProvider;
 use Clue\React\Stdio\Stdio;
-use Madewithlove\LaravelDebugConsole\Console\Debug;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Madewithlove\LaravelDebugConsole\Console\Debug;
 use React\EventLoop\Factory;
 
 class ServiceProvider extends BaseServiceProvider
@@ -14,6 +15,11 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function boot()
     {
+        // Obey the same rules of laravel debugbar so we do not enable profiling where is not expected too.
+        if (!$this->isEnabled()) {
+            return;
+        }
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Debug::class,
@@ -40,6 +46,20 @@ class ServiceProvider extends BaseServiceProvider
      */
     public function register()
     {
-        $this->app->register(\Barryvdh\Debugbar\ServiceProvider::class);
+        $this->app->register(DebugbarServiceProvider::class);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isEnabled()
+    {
+        $enabled = $this->app['config']->get('debugbar.enabled');
+
+        if (is_null($enabled)) {
+            $enabled = $this->app['config']->get('app.debug');
+        }
+
+        return (bool) $enabled;
     }
 }

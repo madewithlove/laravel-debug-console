@@ -4,8 +4,8 @@ namespace Madewithlove\LaravelDebugConsole\Console;
 
 use Clue\React\Stdio\Stdio;
 use Illuminate\Console\Command;
-use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
 use React\EventLoop\LoopInterface;
 
@@ -41,9 +41,9 @@ class Debug extends Command
     private $loop;
 
     /**
-     * @var null|string
+     * @var string|null
      */
-    private $currentRequest = null;
+    private $currentRequest;
 
     /**
      * @var string
@@ -62,8 +62,8 @@ class Debug extends Command
 
     /**
      * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
-     * @param \React\EventLoop\LoopInterface $loop
-     * @param \Clue\React\Stdio\Stdio $stdio
+     * @param \React\EventLoop\LoopInterface                      $loop
+     * @param \Clue\React\Stdio\Stdio                             $stdio
      */
     public function __construct(StorageRepository $repository, LoopInterface $loop, Stdio $stdio)
     {
@@ -165,7 +165,7 @@ class Debug extends Command
 
         $this->stdio->on('data', function ($line) {
             $line = trim($line);
-            if (!in_array($line, $this->getSectionOptions())) {
+            if (!in_array($line, $this->getSectionOptions(), true)) {
                 $this->output->newLine();
                 $this->error('Invalid option.');
 
@@ -183,7 +183,7 @@ class Debug extends Command
     private function getSectionOptions()
     {
         return array_filter(array_keys($this->sections), function ($section) {
-            return !in_array($section, ['general']);
+            return !in_array($section, ['general'], true);
         });
     }
 }
