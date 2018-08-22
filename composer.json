@@ -12,7 +12,7 @@
   "require": {
     "php": ">=5.5.9",
     "illuminate/console": "5.1.*|5.2.*|5.3.*|5.4.*|5.5.*|5.6.*",
-    "barryvdh/laravel-debugbar": "~2.4|~3.1",
+    "barryvdh/laravel-debugbar": "^2.3|^3.0",
     "clue/stdio-react": "~2.1"
   },
   "autoload": {
