@@ -27,7 +27,7 @@ class Query extends AbstractRenderer
             'connection',
         ], $queries->map(function ($query, $index) {
             return [
-                wordwrap(array_get($query, 'sql'), self::TEXT_MAX_WITH),
+                wordwrap(array_get($query, 'sql'), self::TEXT_MAX_WITH, PHP_EOL, true).PHP_EOL,
                 array_get($query, 'duration_str'),
                 basename(array_get($query, 'stmt_id')),
                 basename(array_get($query, 'connection')),
