@@ -2,11 +2,12 @@
 
 namespace Madewithlove\LaravelDebugConsole\Console;
 
+use Clue\React\Stdio\Stdio;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Madewithlove\LaravelDebugConsole\Renderers\RenderersFactory;
 use Madewithlove\LaravelDebugConsole\StorageRepository;
-use React\EventLoop\Factory;
+use React\EventLoop\LoopInterface;
 
 class Debug extends Command
 {
@@ -30,9 +31,9 @@ class Debug extends Command
     private $repository;
 
     /**
-     * @var string|null
+     * @var \Clue\React\Stdio\Stdio
      */
-    private $currentRequest;
+    private $stdio;
 
     /**
      * @var \React\EventLoop\LoopInterface
@@ -40,9 +41,19 @@ class Debug extends Command
     private $loop;
 
     /**
+     * @var string|null
+     */
+    private $currentRequest;
+
+    /**
      * @var string
      */
     private $section;
+
+    /**
+     * @var string
+     */
+    private $renderedSection;
 
     /**
      * @var array
@@ -51,13 +62,16 @@ class Debug extends Command
 
     /**
      * @param \Madewithlove\LaravelDebugConsole\StorageRepository $repository
+     * @param \React\EventLoop\LoopInterface                      $loop
+     * @param \Clue\React\Stdio\Stdio                             $stdio
      */
-    public function __construct(StorageRepository $repository)
+    public function __construct(StorageRepository $repository, LoopInterface $loop, Stdio $stdio)
     {
         parent::__construct();
 
         $this->repository = $repository;
-        $this->loop = Factory::create();
+        $this->loop = $loop;
+        $this->stdio = $stdio;
     }
 
     /**
@@ -67,6 +81,7 @@ class Debug extends Command
     {
         $this->section = $this->argument('section');
         $this->sections = RenderersFactory::create($this->input, $this->output);
+        $this->registerReadLineEvent();
 
         $this->loop->addPeriodicTimer(1, function () {
             try {
@@ -79,12 +94,13 @@ class Debug extends Command
             }
 
             // Checks if its a new request
-            if (!$this->isNewRequest($data)) {
+            if (!$this->isNewData($data) && !$this->isNewSection()) {
                 return;
             }
 
             $this->clear();
             $this->renderScreen($data);
+            $this->clearPrompt();
         });
 
         $this->loop->run();
@@ -99,6 +115,16 @@ class Debug extends Command
         if (array_has($this->sections, $this->section)) {
             array_get($this->sections, $this->section)->render($data);
         }
+
+        $this->renderedSection = $this->section;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isNewSection()
+    {
+        return $this->renderedSection !== $this->section;
     }
 
     /**
@@ -106,7 +132,7 @@ class Debug extends Command
      *
      * @return bool
      */
-    private function isNewRequest(array $data)
+    private function isNewData(array $data)
     {
         $id = array_get($data, '__meta.id');
         if ($id && empty($this->currentRequest) || $this->currentRequest !== $id) {
@@ -120,6 +146,44 @@ class Debug extends Command
 
     private function clear()
     {
-        passthru("echo '\033\143'");
+        $this->output->write(sprintf("\033\143"));
+    }
+
+    private function clearPrompt()
+    {
+        $this->output->newLine();
+
+        $this->stdio->getReadline()->setPrompt(' > ');
+    }
+
+    private function registerReadLineEvent()
+    {
+        $readLine = $this->stdio->getReadline();
+        $readLine->setAutocomplete(function () {
+            return $this->getSectionOptions();
+        });
+
+        $this->stdio->on('data', function ($line) {
+            $line = trim($line);
+            if (!in_array($line, $this->getSectionOptions(), true)) {
+                $this->output->newLine();
+                $this->error('Invalid option.');
+
+                return;
+            }
+
+            $this->section = $line;
+            $this->renderedSection = null;
+        });
+    }
+
+    /**
+     * @return array
+     */
+    private function getSectionOptions()
+    {
+        return array_filter(array_keys($this->sections), function ($section) {
+            return !in_array($section, ['general'], true);
+        });
     }
 }
